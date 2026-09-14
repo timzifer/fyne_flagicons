@@ -1,10 +1,11 @@
-module gitlab.com/eshaker/golang/fyne/flag_icons
+module github.com/timzifer/fyne-flag-icons
 
 go 1.20
 
 require (
 	fyne.io/fyne/v2 v2.3.5
 	github.com/rs/zerolog v1.29.1
+	golang.org/x/text v0.6.0
 )
 
 require (
@@ -16,5 +17,4 @@ require (
 	golang.org/x/image v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
-	golang.org/x/text v0.6.0 // indirect
 )

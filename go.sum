@@ -271,8 +271,8 @@ github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PK
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tevino/abool v1.2.0/go.mod h1:qc66Pna1RiIsPa7O4Egxxs9OqkuxDX55zznh9K07Tzg=
-github.com/timzifer/fyne_iconkit v0.0.0-20260914102514-2dd2d70e50c5 h1:NNAKSW8ozZlBKiPLO1kDYhTF5XLhMzEybB2q8G8aJAw=
-github.com/timzifer/fyne_iconkit v0.0.0-20260914102514-2dd2d70e50c5/go.mod h1:ggIwGNaasc8fz5UHvY7+lJwLHTNsMMDenqCZ71zDxY8=
+github.com/timzifer/fyne_iconkit v0.1.0 h1:wV5BTYlf4aQLvytjD5ko652t8l084hUb3srAgA4d1R4=
+github.com/timzifer/fyne_iconkit v0.1.0/go.mod h1:ggIwGNaasc8fz5UHvY7+lJwLHTNsMMDenqCZ71zDxY8=
 github.com/urfave/cli/v2 v2.4.0/go.mod h1:NX9W0zmTvedE5oDoOMs2RTC8RvdK98NTYZE5LbaEYPg=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

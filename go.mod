@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	fyne.io/fyne/v2 v2.3.5
-	github.com/timzifer/fyne_iconkit v0.0.0-20260914102514-2dd2d70e50c5
+	github.com/timzifer/fyne_iconkit v0.1.0
 	golang.org/x/text v0.6.0
 )
 
@@ -24,3 +24,6 @@ require (
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// Tags from before the rename declare the old module path and cannot be used.
+retract [v0.0.1, v0.1.0]

@@ -1,86 +1,77 @@
-package flag_icons
+// Package fyne_flagicons provides country flag icons for Fyne apps.
+//
+// Flags are addressed by their lowercase ISO 3166-1 alpha-2 code (plus a few
+// subdivisions such as "gb-eng"); the generated Flag* constants list all of
+// them. The SVGs are taken from https://github.com/lipis/flag-icons.
+package fyne_flagicons
 
 import (
 	"embed"
 	"fmt"
+	"io/fs"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
-	"github.com/rs/zerolog"
+	"github.com/timzifer/fyne_iconkit"
 	"golang.org/x/text/language"
-	"io"
-	"strings"
-	"sync"
 )
+
+//go:generate go run github.com/timzifer/fyne_iconkit/cmd/iconconst -dir flags -prefix Flag -upper -out flags_gen.go
 
 var (
-	mutex  = sync.Mutex{}
-	logger = zerolog.Nop()
-	cache  = map[string]fyne.Resource{}
-
 	//go:embed flags
-	resources embed.FS
+	flags embed.FS
+
+	set = fyne_iconkit.NewSet(flags, "flags")
 )
 
-func RegisterLogger(l zerolog.Logger) {
-	logger = l
+// Icon returns the flag for the given country code, e.g. "de" or "gb-eng".
+// The code is case-insensitive. Unknown codes yield an error wrapping
+// fs.ErrNotExist.
+func Icon(code string) (fyne.Resource, error) {
+	return set.Icon(strings.ToLower(code))
 }
 
-func Icon(name string) (fyne.Resource, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	if i, exists := cache[name]; exists {
-		return i, nil
-	}
-	if f, err := resources.Open(fmt.Sprintf("flags/%s.svg", name)); err != nil {
-		return nil, err
-	} else if icon, readErr := io.ReadAll(f); readErr != nil {
-		return nil, readErr
-	} else {
-		cache[name] = fyne.NewStaticResource(name, icon)
-		logger.Debug().Str("name", name).Msg("flag-resource has been loaded + cached")
-
-		return cache[name], nil
-	}
-
+// MustIcon is like Icon but returns theme.ErrorIcon() for unknown codes.
+func MustIcon(code string) fyne.Resource {
+	return set.MustIcon(strings.ToLower(code))
 }
 
-func MustIcon(name string) fyne.Resource {
-	if icon, err := Icon(name); err != nil {
-		logger.Warn().Err(err).Str("name", name).Msg("could not find flag-resource")
-
-		return theme.ErrorIcon()
-	} else {
-		return icon
-	}
+// Source returns the SVG content of the flag for the given country code.
+func Source(code string) ([]byte, error) {
+	return set.Source(strings.ToLower(code))
 }
 
-// IconForLanguage gibt das Flaggen-Icon für das gegebene language.Tag zurück.
-// Es versucht, die Region aus dem Tag zu verwenden (z.B. "US" aus "en-US").
-// Wenn keine Region vorhanden ist, gibt es einen Fehler zurück oder ein Standard-Icon.
+// PNG rasterizes the flag for the given country code. size is the length of
+// the longer edge in pixels.
+func PNG(code string, size int) ([]byte, error) {
+	return set.PNG(strings.ToLower(code), size)
+}
+
+// Names returns the codes of all available flags.
+func Names() []string {
+	return set.Names()
+}
+
+// IconForLanguage returns the flag of the region of the given language tag,
+// e.g. "gb" for en-GB. If the tag has no explicit region, the most likely one
+// is used ("de" for German). Tags without a determinable region or with a
+// region that has no flag (such as es-419) yield an error.
 func IconForLanguage(tag language.Tag) (fyne.Resource, error) {
-	// Versuche, die Region aus dem Tag zu extrahieren
 	region, confidence := tag.Region()
-
-	// Wenn keine Region sicher bestimmt werden kann, könnten wir einen Fehler zurückgeben
-	// oder versuchen, die Basissprache zu verwenden (was aber oft nicht eindeutig ist, z.B. "en").
-	// Hier geben wir einen Fehler zurück, wenn keine Region vorhanden ist.
 	if confidence == language.No {
-		// Alternativ: return MustIcon("xx"), nil // für eine generische Flagge
-		return nil, fmt.Errorf("kann keine eindeutige Region für Sprache '%s' bestimmen", tag.String())
+		return nil, fmt.Errorf("no region for language tag %q: %w", tag, fs.ErrNotExist)
 	}
-
-	// Wandle den Ländercode (Region) in Kleinbuchstaben um, da die Icons so benannt sind
-	countryCode := strings.ToLower(region.String())
-
-	// Verwende die bestehende Icon-Funktion
-	return Icon(countryCode)
+	return Icon(region.String())
 }
 
-// MustIconForLanguage ist wie IconForLanguage, gibt aber theme.ErrorIcon() bei Fehlern zurück.
+// MustIconForLanguage is like IconForLanguage but logs the error via
+// fyne.LogError and returns theme.ErrorIcon() on failure.
 func MustIconForLanguage(tag language.Tag) fyne.Resource {
 	icon, err := IconForLanguage(tag)
 	if err != nil {
-		logger.Warn().Err(err).Str("language_tag", tag.String()).Msg("could not find flag-resource for language tag")
+		fyne.LogError("could not load flag icon", err)
 		return theme.ErrorIcon()
 	}
 	return icon

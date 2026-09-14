@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	fyne.io/fyne/v2 v2.3.5
-	github.com/timzifer/fyne_iconkit v0.0.0-20260914100906-af15eacc8d70
+	github.com/timzifer/fyne_iconkit v0.0.0-20260914102514-2dd2d70e50c5
 	golang.org/x/text v0.6.0
 )
 

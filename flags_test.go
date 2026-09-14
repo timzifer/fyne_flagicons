@@ -2,9 +2,7 @@ package fyne_flagicons
 
 import (
 	"bytes"
-	"errors"
 	"image/png"
-	"io/fs"
 	"testing"
 
 	"fyne.io/fyne/v2/test"
@@ -13,42 +11,40 @@ import (
 )
 
 func TestAllFlagsRender(t *testing.T) {
-	names := Names()
-	if len(names) < 250 {
-		t.Fatalf("only %d flags embedded", len(names))
+	all := All()
+	if len(all) < 250 {
+		t.Fatalf("only %d flags embedded", len(all))
 	}
-	for _, name := range names {
-		data, err := PNG(name, 32)
+	for _, f := range all {
+		data, err := PNG(f, 32)
 		if err != nil {
-			t.Errorf("PNG(%q): %v", name, err)
+			t.Errorf("PNG(%s): %v", f, err)
 			continue
 		}
 		if _, err := png.Decode(bytes.NewReader(data)); err != nil {
-			t.Errorf("PNG(%q) is not decodable: %v", name, err)
+			t.Errorf("PNG(%s) is not decodable: %v", f, err)
 		}
 	}
 }
 
-func TestIcon(t *testing.T) {
-	for _, code := range []string{FlagDE, "DE", "de.svg", FlagGB_ENG} {
-		res, err := Icon(code)
-		if err != nil {
-			t.Errorf("Icon(%q): %v", code, err)
-			continue
-		}
-		if !bytes.HasPrefix(res.Content(), []byte("<svg")) {
-			t.Errorf("Icon(%q) content is not an SVG", code)
+func TestLookup(t *testing.T) {
+	tests := map[string]flag{"de": FlagDE, "DE": FlagDE, "gb-eng": FlagGB_ENG, "GB-ENG": FlagGB_ENG}
+	for code, want := range tests {
+		if got, ok := Lookup(code); !ok || got != want {
+			t.Errorf("Lookup(%q) = %v, %v; want %v", code, got, ok, want)
 		}
 	}
-	if _, err := Icon("nope"); !errors.Is(err, fs.ErrNotExist) {
-		t.Errorf("Icon(nope) error = %v, want fs.ErrNotExist", err)
+	for _, code := range []string{"", "nope", "de.svg", "../flags/de"} {
+		if _, ok := Lookup(code); ok {
+			t.Errorf("Lookup(%q) succeeded", code)
+		}
 	}
 }
 
-func TestIconForLanguage(t *testing.T) {
+func TestForLanguage(t *testing.T) {
 	tests := []struct {
 		tag  language.Tag
-		want string
+		want flag
 	}{
 		{language.MustParse("de-AT"), FlagAT},
 		{language.BritishEnglish, FlagGB},
@@ -56,31 +52,35 @@ func TestIconForLanguage(t *testing.T) {
 		{language.MustParse("pt-BR"), FlagBR},
 	}
 	for _, tt := range tests {
-		res, err := IconForLanguage(tt.tag)
-		if err != nil {
-			t.Errorf("IconForLanguage(%s): %v", tt.tag, err)
-			continue
-		}
-		if res.Name() != tt.want+".svg" {
-			t.Errorf("IconForLanguage(%s) = %s, want %s.svg", tt.tag, res.Name(), tt.want)
+		if got, ok := ForLanguage(tt.tag); !ok || got != tt.want {
+			t.Errorf("ForLanguage(%s) = %v, %v; want %v", tt.tag, got, ok, tt.want)
 		}
 	}
-
-	for _, tag := range []language.Tag{language.MustParse("es-419")} {
-		if _, err := IconForLanguage(tag); !errors.Is(err, fs.ErrNotExist) {
-			t.Errorf("IconForLanguage(%s) error = %v, want fs.ErrNotExist", tag, err)
-		}
+	if got, ok := ForLanguage(language.MustParse("es-419")); ok {
+		t.Errorf("ForLanguage(es-419) = %v, want no flag", got)
 	}
 }
 
-func TestMustIconForLanguageFallback(t *testing.T) {
+func TestIcon(t *testing.T) {
 	test.NewApp()
 	defer test.NewApp()
 
-	if got := MustIconForLanguage(language.MustParse("es-419")); got != theme.ErrorIcon() {
-		t.Errorf("MustIconForLanguage(es-419) = %v, want theme.ErrorIcon()", got)
+	res := Icon(FlagDE)
+	if res.Name() != "de.svg" || !bytes.HasPrefix(res.Content(), []byte("<svg")) {
+		t.Errorf("Icon(FlagDE) = %s %.20s", res.Name(), res.Content())
 	}
-	if got := MustIcon("nope"); got != theme.ErrorIcon() {
-		t.Errorf("MustIcon(nope) = %v, want theme.ErrorIcon()", got)
+	if !bytes.Equal(Source(FlagDE), res.Content()) {
+		t.Error("Source(FlagDE) differs from icon content")
+	}
+	if got := IconForLanguage(language.German); got != res {
+		t.Errorf("IconForLanguage(de) = %v, want %v", got, res)
+	}
+	if got := IconForLanguage(language.MustParse("es-419")); got != theme.ErrorIcon() {
+		t.Errorf("IconForLanguage(es-419) = %v, want theme.ErrorIcon()", got)
+	}
+
+	var zero flag
+	if got := Icon(zero); got != theme.ErrorIcon() {
+		t.Errorf("Icon(zero value) = %v, want theme.ErrorIcon()", got)
 	}
 }

@@ -22,24 +22,29 @@ import (
 	"github.com/timzifer/fyne_flagicons"
 )
 
-// by ISO 3166-1 alpha-2 code (case-insensitive) or generated constant
-de := widget.NewIcon(fyne_flagicons.MustIcon(fyne_flagicons.FlagDE))
-eng := widget.NewIcon(fyne_flagicons.MustIcon("gb-eng"))
+// generated variables
+de := widget.NewIcon(fyne_flagicons.Icon(fyne_flagicons.FlagDE))
+eng := widget.NewIcon(fyne_flagicons.Icon(fyne_flagicons.FlagGB_ENG))
 
-// by language tag: uses the tag's region, e.g. en-GB -> gb, de -> de
-gb := widget.NewIcon(fyne_flagicons.MustIconForLanguage(language.BritishEnglish))
+// by language tag: uses the tag's region, e.g. en-GB -> FlagGB, de -> FlagDE
+gb := widget.NewIcon(fyne_flagicons.IconForLanguage(language.BritishEnglish))
 
-// raw SVG or a rasterized PNG (longer edge in pixels)
-svg, _ := fyne_flagicons.Source("fr")
-png, _ := fyne_flagicons.PNG("fr", 64)
+// codes from configuration or user input (case-insensitive)
+if f, ok := fyne_flagicons.Lookup("fr"); ok {
+	svg := fyne_flagicons.Source(f)
+	png, _ := fyne_flagicons.PNG(f, 64) // longer edge in pixels
+}
 ```
 
-`Icon` / `IconForLanguage` return an error wrapping `fs.ErrNotExist` for unknown
-codes; the `Must*` variants log via `fyne.LogError` and return
-`theme.ErrorIcon()` instead. `Names()` lists all codes.
+Flags are values of an unexported type that only the generated `Flag*`
+variables, `Lookup` and `ForLanguage` produce – arbitrary strings do not
+compile, so `Icon` cannot fail. `IconForLanguage` falls back to
+`theme.ErrorIcon()` if the tag has no flag (e.g. `es-419`); use `ForLanguage`
+to check first. Since the type is unexported, store `fyne.Resource`s or codes
+(`f.String()`) rather than flag values in your own structs.
 
 Built on [fyne_iconkit](https://github.com/timzifer/fyne_iconkit). After
-updating the SVGs, run `go generate ./...` to refresh the `Flag*` constants.
+updating the SVGs, run `go generate ./...` to refresh the `Flag*` variables.
 
 ## License
 
